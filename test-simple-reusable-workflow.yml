@@ -1,0 +1,36 @@
+# .github/workflows/simple-reusable.yml
+name: Simple reusable workflow example
+
+on:
+  workflow_call:
+    inputs:
+      config-path:
+        required: true
+        type: string
+      caller-repo:
+        required: true
+        type: string
+    secrets:
+      token:
+        required: true
+
+permissions:
+  contents: read
+  pull-requests: write
+  # issues: write
+  # id-token: write
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Echo repo names
+        run: |
+          echo "Reusable workflow repo: ${{ github.repository }}"
+          echo "Caller repo: ${{ inputs.caller-repo }}"
+
+      - name: Label PRs
+        uses: actions/labeler@v6
+        with:
+          repo-token: ${{ secrets.token }}
+          configuration-path: ${{ inputs.config-path }}
