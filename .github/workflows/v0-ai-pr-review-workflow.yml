@@ -165,11 +165,13 @@ jobs:
             for result_file in all-results/*.txt; do
               if [ -f "$result_file" ]; then
                 STAGE_NAME=$(basename "$result_file" .txt)
-                COMMENT_BODY+="### 📋 ${STAGE_NAME}"$'\n\n'
+                COMMENT_BODY+="<details>"$'\n'
+                COMMENT_BODY+="<summary>📋 <strong>${STAGE_NAME}</strong></summary>"$'\n\n'
                 COMMENT_BODY+="$(cat "$result_file")"$'\n\n'
-                COMMENT_BODY+="---"$'\n\n'
+                COMMENT_BODY+="</details>"$'\n\n'
               fi
             done
+            COMMENT_BODY+="---"$'\n\n'
             COMMENT_BODY+="*This review was generated automatically using AI analysis*"
           else
             COMMENT_BODY+="No review findings to report."$'\n\n'
