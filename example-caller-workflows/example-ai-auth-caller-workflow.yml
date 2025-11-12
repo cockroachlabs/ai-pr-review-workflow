@@ -11,6 +11,6 @@ permissions:
 
 jobs:
   call-reusable:
-    uses: cockroachlabs/ai-pr-review-workflow/.github/workflows/test-simple-reusable-workflow.yml@create-initial-test-workflow
+    uses: cockroachlabs/ai-pr-review-workflow/.github/workflows/test-ai-auth-reusable-workflow.yml@main
     secrets:
       token: ${{ secrets.GITHUB_TOKEN }}
