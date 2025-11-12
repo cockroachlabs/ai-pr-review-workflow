@@ -120,14 +120,66 @@ jobs:
 
             
 
-      - name: Extract ${{ matrix.stage.name }} Result
+      - name: Extract and Save ${{ matrix.stage.name }} Result
         id: stage_result
         if: steps.run_stage.conclusion == 'success'
         run: |
+          mkdir -p review-results
           RESULT=$(jq -r '.[] | select(.type == "result") | .result' "${{ steps.run_stage.outputs.execution_file }}")
-          {
-            echo 'result<<EOF'
-            echo "$RESULT"
-            echo 'EOF'
-          } >> "$GITHUB_OUTPUT"
+          echo "$RESULT" > review-results/${{ matrix.stage.name }}.txt
           echo "${{ matrix.stage.name }} result extracted (${#RESULT} characters)"
+
+      - name: Upload ${{ matrix.stage.name }} Result
+        if: steps.stage_result.conclusion == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: review-result-${{ matrix.stage.name }}
+          path: review-results/${{ matrix.stage.name }}.txt
+          retention-days: 1
+
+  post-consolidated-review:
+    runs-on: ubuntu-latest
+    needs: claude-code-pr-review
+    if: always()
+    permissions:
+      pull-requests: write
+
+    steps:
+      - name: Download All Review Results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: review-result-*
+          path: all-results
+          merge-multiple: true
+
+      - name: Combine Results and Post Comment
+        env:
+          GH_TOKEN: ${{ secrets.token }}
+        run: |
+          # Start building the comment
+          COMMENT_BODY="## 🤖 AI PR Review Results"$'\n\n'
+
+          # Check if we have any results
+          if [ -d "all-results" ] && [ "$(ls -A all-results)" ]; then
+            # Loop through all result files and combine them
+            for result_file in all-results/*.txt; do
+              if [ -f "$result_file" ]; then
+                STAGE_NAME=$(basename "$result_file" .txt)
+                COMMENT_BODY+="<details>"$'\n'
+                COMMENT_BODY+="<summary>📋 <strong>${STAGE_NAME}</strong></summary>"$'\n\n'
+                COMMENT_BODY+="$(cat "$result_file")"$'\n\n'
+                COMMENT_BODY+="</details>"$'\n\n'
+              fi
+            done
+            COMMENT_BODY+="---"$'\n\n'
+            COMMENT_BODY+="*This review was generated automatically using AI analysis*"
+          else
+            COMMENT_BODY+="No review findings to report."$'\n\n'
+            COMMENT_BODY+="---"$'\n\n'
+            COMMENT_BODY+="*This review was generated automatically using AI analysis*"
+          fi
+
+          # Post the combined comment
+          gh pr comment ${{ github.event.pull_request.number }} \
+            --repo ${{ github.repository }} \
+            --body "$COMMENT_BODY"
