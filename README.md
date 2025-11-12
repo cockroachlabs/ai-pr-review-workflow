@@ -17,13 +17,13 @@ Update the Terraform configuration, ensuring the list of repos is alphabetized, 
 
 enabled_repositories = [
   "cockroachdb/cockroach",
-  "cockroachlabs/example-repo",  # Add your repo here
+  "<owner>/<repo-name>",  # Add your repo here and maintain alphabetical order
   ...
 ]
 
 ...
 
-sa-mapping = {
+sa-mapping = { # Add your details here and maintain alphabetical order
   "${google_service_account.ai-review.account_id}-<repo-name>" = {
       sa_name   = google_service_account.ai-review.name
       attribute = "attribute.repository/<owner>/<repo>"
