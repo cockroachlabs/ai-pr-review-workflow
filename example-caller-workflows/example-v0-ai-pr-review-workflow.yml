@@ -1,0 +1,30 @@
+name: Label PRs via reusable workflow
+
+on:
+  pull_request_target:
+    types: [synchronize, ready_for_review, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  call-reusable:
+    uses: cockroachlabs/ai-pr-review-workflow/.github/workflows/v0-ai-pr-review-workflow.yml@v0
+    with:
+      stages_json: |
+        [
+          {
+            "name": "bug-finder",
+            "repo": "cockroachlabs/ai-pr-review-workflow",
+            "ref": "main",
+            "path": "prompts/bug-finder.md"
+          },
+          {
+            "name": "molt-review",
+            "path": ".github/prompts/molt.md"
+          }
+        ]
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
