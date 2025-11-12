@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   call-reusable:
-    uses: cockroachlabs/ai-pr-review-workflow/.github/workflows/v0-ai-auth-reusable-workflow.yml@v0
+    uses: cockroachlabs/ai-pr-review-workflow/.github/workflows/v0-ai-pr-review-workflow.yml@v0
     with:
       stages_json: |
         [

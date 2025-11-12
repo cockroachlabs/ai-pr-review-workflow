@@ -1,5 +1,4 @@
-# .github/workflows/simple-reusable.yml
-name: Simple reusable workflow example
+name: AI PR Reviewer
 
 on:
   workflow_call:
@@ -89,8 +88,8 @@ jobs:
           PROMPT_URL="https://raw.githubusercontent.com/$REPO/$REF/${{ matrix.stage.path }}"
           echo "Fetching prompt from: $PROMPT_URL"
 
-          # Download the prompt file
-          PROMPT_CONTENT=$(curl -fsSL "$PROMPT_URL")
+          # Download the prompt file (with auth for private repos)
+          PROMPT_CONTENT=$(curl -fsSL -H "Authorization: token ${{ secrets.token }}" "$PROMPT_URL")
 
           # Store in env using heredoc to preserve multiline formatting
           {
