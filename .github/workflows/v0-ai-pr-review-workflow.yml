@@ -84,17 +84,27 @@ jobs:
             echo "No ref specified, using: $REF"
           fi
 
-          # Construct the raw.githubusercontent.com URL
+          # Fetch the general guidelines (always from the workflow repo)
+          GUIDELINES_URL="https://raw.githubusercontent.com/cockroachlabs/ai-pr-review-workflow/main/prompts/guidelines.md"
+          echo "Fetching general guidelines from: $GUIDELINES_URL"
+          GUIDELINES_CONTENT=$(curl -fsSL $GUIDELINES_URL)
+
+          # Construct the raw.githubusercontent.com URL for the specific prompt
           PROMPT_URL="https://raw.githubusercontent.com/$REPO/$REF/${{ matrix.stage.path }}"
-          echo "Fetching prompt from: $PROMPT_URL"
+          echo "Fetching stage-specific prompt from: $PROMPT_URL"
 
-          # Download the prompt file (with auth for private repos)
-          PROMPT_CONTENT=$(curl -fsSL -H "Authorization: token ${{ secrets.token }}" "$PROMPT_URL")
+          # Download the stage-specific prompt file (with auth for private repos)
+          SPECIFIC_PROMPT=$(curl -fsSL -H "Authorization: token ${{ secrets.token }}" "$PROMPT_URL")
 
+          # Combine: specific prompt + general guidelines
           # Store in env using heredoc to preserve multiline formatting
           {
             echo 'review_prompt<<EOF'
-            echo "$PROMPT_CONTENT"
+            echo "$SPECIFIC_PROMPT"
+            echo ""
+            echo "---"
+            echo ""
+            echo "$GUIDELINES_CONTENT"
             echo 'EOF'
           } >> "$GITHUB_ENV"
 
@@ -152,34 +162,76 @@ jobs:
           path: all-results
           merge-multiple: true
 
-      - name: Combine Results and Post Comment
+      - name: Parse Results and Post Inline Review Comments
         env:
           GH_TOKEN: ${{ secrets.token }}
         run: |
-          # Start building the comment
-          COMMENT_BODY="## 🤖 AI PR Review Results"$'\n\n'
+          # Initialize review comments array
+          REVIEW_COMMENTS="[]"
+          TOTAL_COMMENTS=0
 
           # Check if we have any results
           if [ -d "all-results" ] && [ "$(ls -A all-results)" ]; then
-            # Loop through all result files and combine them
+            # Loop through all result files and extract comments
             for result_file in all-results/*.txt; do
               if [ -f "$result_file" ]; then
                 STAGE_NAME=$(basename "$result_file" .txt)
-                COMMENT_BODY+="<details>"$'\n'
-                COMMENT_BODY+="<summary>📋 <strong>${STAGE_NAME}</strong></summary>"$'\n\n'
-                COMMENT_BODY+="$(cat "$result_file")"$'\n\n'
-                COMMENT_BODY+="</details>"$'\n\n'
+                echo "Processing stage: $STAGE_NAME"
+
+                # Read the result content
+                RESULT_CONTENT=$(cat "$result_file")
+
+                # Try to extract JSON from the result (handle markdown code blocks)
+                JSON_CONTENT=$(echo "$RESULT_CONTENT" | sed -n '/```json/,/```/p' | sed '1d;$d')
+
+                # If no JSON code block found, try to parse the whole content as JSON
+                if [ -z "$JSON_CONTENT" ]; then
+                  # Try to find JSON object in the content
+                  JSON_CONTENT=$(echo "$RESULT_CONTENT" | grep -Eo '\{[^{}]*"comments"[^{}]*\[[^\]]*\][^{}]*\}' || echo '{"comments":[]}')
+                fi
+
+                # Extract comments from this stage's JSON
+                STAGE_COMMENTS=$(echo "$JSON_CONTENT" | jq -c '.comments // []' 2>/dev/null || echo '[]')
+
+                # Add stage name as a prefix to each comment body
+                STAGE_COMMENTS=$(echo "$STAGE_COMMENTS" | jq --arg stage "$STAGE_NAME" '[.[] | .body = "**[\($stage)]**\n\n" + .body]')
+
+                # Merge with existing comments
+                REVIEW_COMMENTS=$(echo "$REVIEW_COMMENTS" | jq --argjson new "$STAGE_COMMENTS" '. + $new')
+
+                COMMENT_COUNT=$(echo "$STAGE_COMMENTS" | jq 'length')
+                TOTAL_COMMENTS=$((TOTAL_COMMENTS + COMMENT_COUNT))
+                echo "Found $COMMENT_COUNT comments from $STAGE_NAME"
               fi
             done
-            COMMENT_BODY+="---"$'\n\n'
-            COMMENT_BODY+="*This review was generated automatically using AI analysis*"
-          else
-            COMMENT_BODY+="No review findings to report."$'\n\n'
-            COMMENT_BODY+="---"$'\n\n'
-            COMMENT_BODY+="*This review was generated automatically using AI analysis*"
           fi
 
-          # Post the combined comment
-          gh pr comment ${{ github.event.pull_request.number }} \
-            --repo ${{ github.repository }} \
-            --body "$COMMENT_BODY"
+          echo "Total inline comments to post: $TOTAL_COMMENTS"
+
+          # Post the review with inline comments
+          if [ "$TOTAL_COMMENTS" -gt 0 ]; then
+            # Build the review body
+            REVIEW_BODY="🤖 **AI PR Review**: Found $TOTAL_COMMENTS issue(s) that need attention."
+
+            # Create the review payload
+            REVIEW_PAYLOAD=$(jq -n \
+              --arg body "$REVIEW_BODY" \
+              --arg commit "${{ github.event.pull_request.head.sha }}" \
+              --argjson comments "$REVIEW_COMMENTS" \
+              '{
+                body: $body,
+                event: "COMMENT",
+                commit_id: $commit,
+                comments: $comments
+              }')
+
+            echo "Posting review with inline comments..."
+            echo "$REVIEW_PAYLOAD" | gh api \
+              repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews \
+              --input - || echo "Failed to post review"
+          else
+            # Post a simple PR comment if no inline comments
+            gh pr comment ${{ github.event.pull_request.number }} \
+              --repo ${{ github.repository }} \
+              --body "## 🤖 AI PR Review Results"$'\n\n'"✅ No issues found during AI review."$'\n\n'"---"$'\n'"*This review was generated automatically using AI analysis*"
+          fi
