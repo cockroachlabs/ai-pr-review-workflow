@@ -182,27 +182,26 @@ jobs:
                 RESULT_CONTENT=$(cat "$result_file")
                 echo "DEBUG: Result file size: ${#RESULT_CONTENT} characters"
 
-                # Try to parse the whole content as JSON first
-                if echo "$RESULT_CONTENT" | jq -e '.comments' >/dev/null 2>&1; then
+                # Extract JSON from between ```json and ``` markers
+                if echo "$RESULT_CONTENT" | grep -q '```json'; then
+                  # Use awk to extract everything between ```json and the closing ```
+                  JSON_CONTENT=$(echo "$RESULT_CONTENT" | awk '/```json/{flag=1; next} /```/{flag=0} flag')
+                  echo "DEBUG: Extracted JSON from code block (${#JSON_CONTENT} characters)"
+
+                  # Validate extracted JSON
+                  if echo "$JSON_CONTENT" | jq -e '.comments' >/dev/null 2>&1; then
+                    echo "DEBUG: Valid JSON with comments field"
+                  else
+                    echo "ERROR: Extracted content is not valid JSON with comments field"
+                    echo "First 200 chars: ${JSON_CONTENT:0:200}"
+                    JSON_CONTENT='{"comments":[]}'
+                  fi
+                # If no markdown code block, try to parse entire content as JSON
+                elif echo "$RESULT_CONTENT" | jq -e '.comments' >/dev/null 2>&1; then
                   JSON_CONTENT="$RESULT_CONTENT"
                   echo "DEBUG: Parsed entire content as JSON"
-                # If that fails, try to extract JSON from markdown code blocks
-                elif echo "$RESULT_CONTENT" | grep -q '```json'; then
-                  JSON_CONTENT=$(echo "$RESULT_CONTENT" | sed -n '/```json/,/```/p' | sed '1d;$d')
-                  echo "DEBUG: Extracted JSON from code block"
-                  echo "DEBUG: JSON_CONTENT size: ${#JSON_CONTENT} characters"
-                  # Validate that we got valid JSON
-                  if ! echo "$JSON_CONTENT" | jq -e '.comments' >/dev/null 2>&1; then
-                    echo "WARNING: Extracted content is not valid JSON, trying alternative extraction"
-                    # Try a more robust extraction using awk
-                    JSON_CONTENT=$(echo "$RESULT_CONTENT" | awk '/```json/,/```/' | sed '1d;$d')
-                    if ! echo "$JSON_CONTENT" | jq -e '.comments' >/dev/null 2>&1; then
-                      echo "ERROR: Still not valid JSON after alternative extraction"
-                      JSON_CONTENT='{"comments":[]}'
-                    fi
-                  fi
                 else
-                  # Last resort: empty comments
+                  # No valid JSON found
                   JSON_CONTENT='{"comments":[]}'
                   echo "DEBUG: No valid JSON found, using empty comments"
                 fi
