@@ -237,3 +237,14 @@ jobs:
               --repo ${{ github.repository }} \
               --body "## 🤖 AI PR Review Results"$'\n\n'"✅ No issues found during AI review."$'\n\n'"---"$'\n'"*This review was generated automatically using AI analysis*"
           fi
+
+          # Add label to PR (create label if it doesn't exist)
+          echo "Adding ai-pr-reviewer label to PR..."
+          gh label create "ai-pr-reviewer" \
+            --repo ${{ github.repository }} \
+            --color "0E8A16" \
+            --description "PR reviewed by AI" \
+            --force 2>/dev/null || true
+          gh pr edit ${{ github.event.pull_request.number }} \
+            --repo ${{ github.repository }} \
+            --add-label "ai-pr-reviewer"
