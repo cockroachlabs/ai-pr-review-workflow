@@ -1,0 +1,55 @@
+name: Fetch JSON
+
+on:
+  workflow_call:
+    inputs:
+      repo:
+        description: "owner/repo to fetch from"
+        required: false
+        type: string
+        default: ${{ github.repository }}
+      ref:
+        description: "git ref (sha/branch/tag) to fetch from"
+        required: false
+        type: string
+        default: ${{ github.event.pull_request.head.sha || github.sha }}
+      path:
+        description: "path to the JSON file within the repo"
+        required: true
+        type: string
+      # Optional: if you want to override the token passed as a secret
+      # use the 'token' secret when calling this workflow.
+    secrets:
+      token:
+        required: false
+        description: "Personal access token if you need to override GITHUB_TOKEN"
+
+    outputs:
+      json_string:
+        description: "Raw stages JSON content"
+        value: ${{ jobs.fetch.outputs.json_string }}
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    outputs:
+      json_string: ${{ steps.get.outputs.json_string }}
+    env:
+      REPO: ${{ inputs.repo }}
+      REF: ${{ inputs.ref }}
+      FILE_PATH: ${{ inputs.path }}
+      TOKEN: ${{ secrets.token || secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Fetch JSON string
+        id: get
+        shell: bash
+        run: |
+          set -euo pipefail
+          url="https://raw.githubusercontent.com/${REPO}/${REF}/${FILE_PATH}"
+          # Use -H auth header; works for private repos with a suitable token
+          json="$(curl -fsSL -H "Authorization: token ${TOKEN}" "$url")"
+          {
+            echo 'json_string<<EOF'
+            echo "$json"
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"

@@ -1,0 +1,25 @@
+name: Label PRs via reusable workflow
+
+on:
+  pull_request_target:
+    types: [synchronize, ready_for_review, reopened, edited]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  fetch:
+    uses: cockroachlabs/ai-pr-review-workflow/.github/workflows/fetch-json.yml@main
+    with:
+      path: example-caller/stages/v0-stages.json
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
+  call:
+    needs: fetch
+    uses: cockroachlabs/ai-pr-review-workflow/.github/workflows/v0-ai-pr-review-workflow.yml@main
+    with:
+      stages_json: ${{ needs.fetch.outputs.json_string }}
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
