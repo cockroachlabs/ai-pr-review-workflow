@@ -39,6 +39,6 @@ If you find NO issues, output:
 
 ## **Output Requirement**
 
-After your analysis, output a valid JSON object as shown above. This JSON will be parsed to create inline PR review comments.
+After your analysis, output a valid JSON object as shown above. Do NOT include additional text before or after. This JSON will be parsed to create inline PR review comments.
 
 ---
