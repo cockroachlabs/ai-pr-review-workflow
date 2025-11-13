@@ -180,14 +180,20 @@ jobs:
 
                 # Read the result content
                 RESULT_CONTENT=$(cat "$result_file")
+                echo "DEBUG: Result file size: ${#RESULT_CONTENT} characters"
 
-                # Try to extract JSON from the result (handle markdown code blocks)
-                JSON_CONTENT=$(echo "$RESULT_CONTENT" | sed -n '/```json/,/```/p' | sed '1d;$d')
-
-                # If no JSON code block found, try to parse the whole content as JSON
-                if [ -z "$JSON_CONTENT" ]; then
-                  # Try to find JSON object in the content
-                  JSON_CONTENT=$(echo "$RESULT_CONTENT" | grep -Eo '\{[^{}]*"comments"[^{}]*\[[^\]]*\][^{}]*\}' || echo '{"comments":[]}')
+                # Try to parse the whole content as JSON first
+                if echo "$RESULT_CONTENT" | jq -e '.comments' >/dev/null 2>&1; then
+                  JSON_CONTENT="$RESULT_CONTENT"
+                  echo "DEBUG: Parsed entire content as JSON"
+                # If that fails, try to extract JSON from markdown code blocks
+                elif echo "$RESULT_CONTENT" | grep -q '```json'; then
+                  JSON_CONTENT=$(echo "$RESULT_CONTENT" | sed -n '/```json/,/```/p' | sed '1d;$d')
+                  echo "DEBUG: Extracted JSON from code block"
+                else
+                  # Last resort: empty comments
+                  JSON_CONTENT='{"comments":[]}'
+                  echo "DEBUG: No valid JSON found, using empty comments"
                 fi
 
                 # Extract comments from this stage's JSON
