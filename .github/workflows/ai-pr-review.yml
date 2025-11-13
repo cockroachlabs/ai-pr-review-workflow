@@ -182,11 +182,15 @@ jobs:
                 RESULT_CONTENT=$(cat "$result_file")
                 echo "DEBUG: Result file size: ${#RESULT_CONTENT} characters"
 
-                # Extract JSON from between ```json and ``` markers
+                # Extract JSON from between ```json and the LAST ```
                 if echo "$RESULT_CONTENT" | grep -q '```json'; then
-                  # Use awk to extract everything between ```json and the closing ```
-                  JSON_CONTENT=$(echo "$RESULT_CONTENT" | awk '/```json/{flag=1; next} /```/{flag=0} flag')
-                  echo "DEBUG: Extracted JSON from code block (${#JSON_CONTENT} characters)"
+                  # Find line numbers: first ```json and LAST standalone ```
+                  START_LINE=$(echo "$RESULT_CONTENT" | grep -n '```json' | head -1 | cut -d: -f1)
+                  END_LINE=$(echo "$RESULT_CONTENT" | grep -n '^```$' | tail -1 | cut -d: -f1)
+
+                  # Extract lines between markers
+                  JSON_CONTENT=$(echo "$RESULT_CONTENT" | sed -n "$((START_LINE + 1)),$((END_LINE - 1))p")
+                  echo "DEBUG: Extracted JSON from code block (lines $((START_LINE + 1))-$((END_LINE - 1)), ${#JSON_CONTENT} characters)"
 
                   # Validate extracted JSON
                   if echo "$JSON_CONTENT" | jq -e '.comments' >/dev/null 2>&1; then
