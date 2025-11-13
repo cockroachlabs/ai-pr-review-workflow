@@ -156,11 +156,13 @@ CREATE TABLE ai_reviews (
     posted_at TIMESTAMP NOT NULL,
 
     -- Feedback data
+    -- Essentially we count the number of thumbs up versus thumbs down
+    -- If we have more positive than negative, we are positive. And vice versa
+    -- If we have same number or no reactions, neutral.
     sentiment STRING CHECK (sentiment IN ('positive', 'negative', 'neutral')),
-    positive_reactions INT DEFAULT 0,
-    negative_reactions INT DEFAULT 0,
     last_updated TIMESTAMP DEFAULT NOW(),
 
+    INDEX sentiment (sentiment),
     INDEX idx_repo_sentiment (repo_name, sentiment),
     INDEX idx_posted_at (posted_at DESC)
 );
