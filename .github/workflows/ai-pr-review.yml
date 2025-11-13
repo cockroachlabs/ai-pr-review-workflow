@@ -190,6 +190,17 @@ jobs:
                 elif echo "$RESULT_CONTENT" | grep -q '```json'; then
                   JSON_CONTENT=$(echo "$RESULT_CONTENT" | sed -n '/```json/,/```/p' | sed '1d;$d')
                   echo "DEBUG: Extracted JSON from code block"
+                  echo "DEBUG: JSON_CONTENT size: ${#JSON_CONTENT} characters"
+                  # Validate that we got valid JSON
+                  if ! echo "$JSON_CONTENT" | jq -e '.comments' >/dev/null 2>&1; then
+                    echo "WARNING: Extracted content is not valid JSON, trying alternative extraction"
+                    # Try a more robust extraction using awk
+                    JSON_CONTENT=$(echo "$RESULT_CONTENT" | awk '/```json/,/```/' | sed '1d;$d')
+                    if ! echo "$JSON_CONTENT" | jq -e '.comments' >/dev/null 2>&1; then
+                      echo "ERROR: Still not valid JSON after alternative extraction"
+                      JSON_CONTENT='{"comments":[]}'
+                    fi
+                  fi
                 else
                   # Last resort: empty comments
                   JSON_CONTENT='{"comments":[]}'
