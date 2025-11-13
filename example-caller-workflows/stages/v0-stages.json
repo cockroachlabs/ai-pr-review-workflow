@@ -1,0 +1,12 @@
+[
+    {
+      "name": "bug-finder",
+      "repo": "cockroachlabs/ai-pr-review-workflow",
+      "path": "prompts/bug-finder.md",
+      "ref": "9c3e78ece5f9c6a6e268151ddfd75d310eabb51f"
+    },
+    {
+      "name": "molt-review",
+      "path": ".github/workflows/prompts/molt.md"
+    }
+]
