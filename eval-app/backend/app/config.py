@@ -12,6 +12,9 @@ class Settings(BaseSettings):
     api_title: str = "AI PR Review Evaluation API"
     api_version: str = "0.1.0"
 
+    # GitHub API token
+    github_token: str = ""
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

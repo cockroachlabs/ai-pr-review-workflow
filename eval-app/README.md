@@ -14,7 +14,14 @@ A full-stack application for monitoring and analyzing AI-generated pull request 
 1. **Python 3.11+** - Check with `python3 --version`
 2. **Node.js 18+** - Check with `node --version`
 3. **uv** - Fast Python package manager
-4. **CockroachDB** - Running locally
+4. **CockroachDB** - Running locally or serverless
+5. **GitHub Personal Access Token** - Required for dashboard comment viewer
+   - Create at: https://github.com/settings/tokens
+   - Scopes needed: `repo` (for private repos) or `public_repo` (for public repos only)
+   - **Important**: Configure SSO for `cockroachlabs` and `cockroachdb` organizations
+     - After creating the token, click "Configure SSO" next to each organization
+     - Authorize the token for both organizations to access private repositories
+   - Add to `backend/.env` as `GITHUB_TOKEN`
 
 ### Install uv
 
@@ -77,7 +84,11 @@ DATABASE_URL=cockroachdb+psycopg://user:password@host.cockroachlabs.cloud:26257/
 # For local CockroachDB (insecure mode)
 DATABASE_URL=cockroachdb+psycopg://root@localhost:26257/defaultdb
 
-# Optional: GitHub token for data collection
+# Required: GitHub token for fetching PR comments and diffs in the dashboard
+# Create a token at: https://github.com/settings/tokens
+# Required scopes: repo (for private repos) or public_repo (for public repos only)
+# IMPORTANT: After creating the token, configure SSO for cockroachlabs and cockroachdb orgs
+#            Click "Configure SSO" and authorize for both organizations
 GITHUB_TOKEN=ghp_your_token_here
 ```
 
@@ -144,6 +155,24 @@ Frontend runs on http://localhost:5173
 ### 6. Open the Dashboard
 
 Visit http://localhost:5173 in your browser!
+
+## Dashboard Features
+
+### Expandable Review Cards
+
+Each review card in the dashboard can be expanded to show:
+
+1. **Code Snippet** - The specific code changes the AI commented on (pulled from GitHub's `diff_hunk`)
+2. **AI Comment** - The full review comment with markdown formatting
+
+**How it works:**
+
+- When you click "Show Details" on a review card, the frontend makes a request to `/api/github/comment/{repo_name}/{comment_id}`
+- The backend server uses your `GITHUB_TOKEN` to fetch the comment data from GitHub API
+- GitHub's response includes the comment body, file path, line numbers, and the `diff_hunk` (code snippet)
+- The diff snippet is displayed GitHub-style with syntax highlighting
+
+**Security:** The GitHub token is only stored on the backend server and never exposed to the browser.
 
 ## IDE Setup (VS Code / Cursor)
 
@@ -324,6 +353,14 @@ All endpoints are **read-only**. Data is populated by the scraper script.
 - `GET /api/repos/` - List tracked repositories
 - `GET /api/repos/{repo_name}` - Get specific repository
 
+### GitHub Proxy
+
+These endpoints proxy requests to GitHub API (requires `GITHUB_TOKEN` in backend `.env`):
+
+- `GET /api/github/comment/{repo_name}/{comment_id}` - Fetch PR review comment with code snippet
+
+**Note:** The GitHub token is stored securely on the backend. The frontend never has access to it.
+
 ### Documentation
 
 - Interactive API docs: http://localhost:8000/docs
@@ -388,6 +425,9 @@ DATABASE_URL=cockroachdb+asyncpg://root@localhost:26257/defaultdb
 # API
 API_TITLE=AI Review Feedback API
 API_VERSION=1.0.0
+
+# GitHub (required for dashboard comment viewer)
+GITHUB_TOKEN=ghp_your_token_here
 ```
 
 ### Database URL Format
@@ -429,6 +469,29 @@ If ports 8000 or 5173 are in use:
 
 - Backend: Kill process on port 8000: `lsof -ti:8000 | xargs kill -9`
 - Frontend: Kill process on port 5173: `lsof -ti:5173 | xargs kill -9`
+
+### "GitHub token not configured" error
+
+If you see this error when expanding review cards:
+
+1. Create a GitHub Personal Access Token at https://github.com/settings/tokens
+2. Select scopes: `repo` (for private repos) or `public_repo` (for public repos only)
+3. **Configure SSO** - Click "Configure SSO" next to the token
+   - Authorize for `cockroachlabs` organization
+   - Authorize for `cockroachdb` organization
+   - This is required to access private repositories in these orgs
+4. Add to `backend/.env`: `GITHUB_TOKEN=ghp_your_token_here`
+5. Restart the backend server: `make dev-backend`
+
+The token must be set in the **backend** `.env` file, not the frontend.
+
+### "404 Not Found" when expanding review cards
+
+If the comment loads but shows a 404 error:
+
+- Verify your GitHub token has SSO configured for both `cockroachlabs` and `cockroachdb` organizations
+- Go to https://github.com/settings/tokens and click "Configure SSO" next to your token
+- Make sure both organizations are authorized
 
 ## Common Tasks
 
