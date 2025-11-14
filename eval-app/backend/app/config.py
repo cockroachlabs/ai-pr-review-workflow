@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     # Use psycopg (async psycopg3) instead of asyncpg
     # For CockroachDB Serverless, include ?sslmode=verify-full in the connection string
     database_url: str = "cockroachdb+psycopg://root@localhost:26257/defaultdb"
+    github_token: str = ""
 
     # API settings
     api_title: str = "AI PR Review Evaluation API"
