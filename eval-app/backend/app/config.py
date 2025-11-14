@@ -4,10 +4,12 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     """Application settings with environment variable support."""
 
-    database_url: str = "cockroachdb+asyncpg://root@localhost:26257/defaultdb"
+    # Use psycopg (async psycopg3) instead of asyncpg
+    # For CockroachDB Serverless, include ?sslmode=verify-full in the connection string
+    database_url: str = "cockroachdb+psycopg://root@localhost:26257/defaultdb"
 
     # API settings
-    api_title: str = "Full-Stack App API"
+    api_title: str = "AI PR Review Evaluation API"
     api_version: str = "0.1.0"
 
     model_config = SettingsConfigDict(

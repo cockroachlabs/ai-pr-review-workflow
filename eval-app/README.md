@@ -34,10 +34,58 @@ uv --version
 
 ### Start CockroachDB
 
+#### Locally
+
 ```bash
 # Start a local single-node cluster
 cockroach start-single-node --insecure --listen-addr=localhost:26257
 ```
+
+#### Serverless
+
+1. Create a new serverless database in Cockroach Cloud, we are currently
+   using this one in the CRL Cypress Testing Org:
+   https://cockroachlabs.cloud/cluster/b2c31a14-60bd-4777-b7f0-4203bf2ced06/overview
+2. Download the postgres cert which will be essential for doing SSL
+   connections to the serverless cluster:
+
+```
+curl --create-dirs -o $HOME/.postgresql/root.crt 'https://cockroachlabs.cloud/clusters/b2c31a14-60bd-4777-b7f0-4203bf2ced06/cert'
+```
+
+3. Make sure to update your `backend/.env` file with an entry for `DATABASE_URL`:
+
+```bash
+# For CockroachDB Serverless - include ?sslmode=verify-full
+DATABASE_URL=cockroachdb+psycopg://<user>:<password>@<cluster-host>.cockroachlabs.cloud:26257/<database-name>?sslmode=verify-full
+```
+
+**Example:**
+
+```bash
+DATABASE_URL=cockroachdb+psycopg://myuser:mypassword@my-cluster-1234.aws-us-east-1.cockroachlabs.cloud:26257/ai_review_feedback?sslmode=verify-full
+```
+
+## Environment Setup
+
+Create a `backend/.env` file with your database connection:
+
+```bash
+# For CockroachDB Serverless
+DATABASE_URL=cockroachdb+psycopg://user:password@host.cockroachlabs.cloud:26257/database_name?sslmode=verify-full
+
+# For local CockroachDB (insecure mode)
+DATABASE_URL=cockroachdb+psycopg://root@localhost:26257/defaultdb
+
+# Optional: GitHub token for data collection
+GITHUB_TOKEN=ghp_your_token_here
+```
+
+**Key differences from asyncpg:**
+
+- Use `cockroachdb+psycopg://` instead of `cockroachdb+asyncpg://`
+- You **can** and **should** include `?sslmode=verify-full` for Serverless
+- psycopg natively supports the `sslmode` parameter
 
 ## Quick Start
 

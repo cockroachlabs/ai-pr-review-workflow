@@ -3,7 +3,6 @@ from sqlalchemy.orm import DeclarativeBase
 
 from app.config import settings
 
-
 # Create async engine with CockroachDB-specific settings
 # Using psycopg (v3) for better CockroachDB compatibility
 engine = create_async_engine(
