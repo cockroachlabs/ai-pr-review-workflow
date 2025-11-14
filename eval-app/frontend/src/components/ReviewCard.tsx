@@ -15,15 +15,16 @@ const { Text, Link } = Typography
 
 interface ReviewCardProps {
   review: {
-    review_id: string
+    ai_review_id: string
     repo_name: string
     pr_number: number
     pr_url: string
     pr_title?: string | null
-    comment_id: number
-    comment_url: string
+    review_comment_id: number
+    review_comment_url: string
+    review_comment_web_url: string
     workflow_version?: string | null
-    posted_at: string
+    created_at: string
     sentiment: 'positive' | 'negative' | 'neutral' | null
   }
 }
@@ -61,7 +62,7 @@ export const ReviewCard = ({ review }: ReviewCardProps) => {
       setError(null)
 
       try {
-        const commentData = await fetchComment(review.repo_name, review.comment_id)
+        const commentData = await fetchComment(review.repo_name, review.review_comment_id)
         setComment(commentData)
         setExpanded(true)
       } catch (err) {
@@ -136,7 +137,7 @@ export const ReviewCard = ({ review }: ReviewCardProps) => {
           <Space size={10} wrap>
             <Text type="secondary" style={{ fontSize: '11px' }}>
               <ClockCircleOutlined style={{ marginRight: '4px' }} />
-              {new Date(review.posted_at).toLocaleDateString('en-US', {
+              {new Date(review.created_at).toLocaleDateString('en-US', {
                 month: 'short',
                 day: 'numeric',
                 year: 'numeric',
@@ -144,20 +145,12 @@ export const ReviewCard = ({ review }: ReviewCardProps) => {
                 minute: '2-digit'
               })}
             </Text>
-            {review.workflow_version && (
-              <Tag
-                color="blue"
-                style={{ fontSize: '10px', margin: 0, padding: '0 5px', lineHeight: '18px' }}
-              >
-                v{review.workflow_version}
-              </Tag>
-            )}
           </Space>
           <Space size={6}>
             <Button
               type="link"
               size="small"
-              href={review.comment_url}
+              href={review.review_comment_web_url}
               target="_blank"
               rel="noopener noreferrer"
               icon={<GithubOutlined />}

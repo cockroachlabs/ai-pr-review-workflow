@@ -7,15 +7,15 @@ import { ColorFont3 } from '../tokens'
 const { Title, Text } = Typography
 
 interface Review {
-  review_id: string
+  ai_review_id: string
   repo_name: string
   pr_number: number
   pr_url: string
   pr_title?: string | null
-  comment_id: number
-  comment_url: string
+  review_comment_id: number
+  review_comment_url: string
   workflow_version?: string | null
-  posted_at: string
+  created_at: string
   sentiment: 'positive' | 'negative' | 'neutral' | null
   last_updated: string
 }
@@ -48,9 +48,9 @@ export const ReviewsList = ({ reviews, loading }: ReviewsListProps) => {
     result.sort((a, b) => {
       switch (sortBy) {
         case 'newest':
-          return new Date(b.posted_at).getTime() - new Date(a.posted_at).getTime()
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         case 'oldest':
-          return new Date(a.posted_at).getTime() - new Date(b.posted_at).getTime()
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
         case 'repo-asc':
           return a.repo_name.localeCompare(b.repo_name)
         case 'repo-desc':
@@ -125,7 +125,7 @@ export const ReviewsList = ({ reviews, loading }: ReviewsListProps) => {
       ) : (
         <Space direction="vertical" size={10} style={{ width: '100%' }}>
           {filteredAndSortedReviews.map((review) => (
-            <ReviewCard key={review.review_id} review={review} />
+            <ReviewCard key={review.ai_review_id} review={review} />
           ))}
         </Space>
       )}

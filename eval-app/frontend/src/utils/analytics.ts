@@ -51,7 +51,7 @@ export const calculateDailyTrends = (reviews: AIReview[], days: number = 7): Dai
 
   // Count reviews for each day
   reviews.forEach(review => {
-    const reviewDate = new Date(review.posted_at)
+    const reviewDate = new Date(review.created_at)
     if (reviewDate >= startDate) {
       const dateKey = reviewDate.toISOString().split('T')[0]
       const dayData = dailyMap.get(dateKey)

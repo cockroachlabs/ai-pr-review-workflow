@@ -79,7 +79,7 @@ function App() {
   const filteredReviewsByDays = useMemo(() => {
     const cutoffDate = new Date()
     cutoffDate.setDate(cutoffDate.getDate() - daysFilter)
-    return reviews.filter(r => new Date(r.posted_at) >= cutoffDate)
+    return reviews.filter(r => new Date(r.created_at) >= cutoffDate)
   }, [reviews, daysFilter])
 
   const calculateSentimentCounts = () => {
