@@ -11,14 +11,14 @@ permissions:
 
 jobs:
   fetch:
-    uses: cockroachlabs/ai-pr-review-workflow/.github/workflows/fetch-json.yml@main
+    uses: cockroachlabs/ai-pr-review-workflow/.github/workflows/fetch-json.yml@v1.0.0
     with:
       path: example-caller/stages/v0-stages.json
     secrets:
       token: ${{ secrets.GITHUB_TOKEN }}
   call:
     needs: fetch
-    uses: cockroachlabs/ai-pr-review-workflow/.github/workflows/v0-ai-pr-review-workflow.yml@main
+    uses: cockroachlabs/ai-pr-review-workflow/.github/workflows/ai-pr-review.yml@v1.0.0
     with:
       stages_json: ${{ needs.fetch.outputs.json_string }}
     secrets:

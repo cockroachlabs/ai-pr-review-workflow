@@ -34,22 +34,18 @@ sa-mapping = { # Add your details here and maintain alphabetical order
 
 ### 2. Create a Caller Workflow in your repository
 
-In order to create a caller workflow, follow the examples relevant to
-your situation in:
-https://github.com/cockroachlabs/ai-pr-review-workflow/tree/main/example-caller-workflows
+Create a workflow file in your repository (e.g., `.github/workflows/ai-pr-review.yml`) to call the reusable AI PR review workflow.
 
-## Example workflow
+## Usage Options
 
-Here is the general anatomy of a caller workflow in it's most simple
-form:
+There are two ways to configure the AI review stages (prompts):
 
-- Set the trigger, in this case pull requests
-- Permissions for the Github token
-- Create a new job that `uses` the workflow at a given version
-- Pass in the secrets from the `GITHUB_TOKEN` secrets
+### Option A: Inline Configuration (Simplest)
 
-```
-name: Label PRs via reusable workflow
+Define your review stages directly in the workflow file:
+
+```yaml
+name: AI PR Review
 
 on:
   pull_request_target:
@@ -59,14 +55,159 @@ permissions:
   contents: read
   pull-requests: write
   issues: write
-  id-token: write
 
 jobs:
-  call-reusable:
-    uses: cockroachlabs/ai-pr-review-workflow/.github/workflows/test-ai-auth-reusable-workflow.yml@version
+  ai-review:
+    uses: cockroachlabs/ai-pr-review-workflow/.github/workflows/ai-pr-review.yml@v1.0.0
+    with:
+      stages_json: |
+        [
+          {
+            "name": "bug-finder",
+            "repo": "cockroachlabs/ai-pr-review-workflow",
+            "ref": "main",
+            "path": "prompts/bug-finder.md"
+          },
+          {
+            "name": "custom-review",
+            "path": ".github/prompts/custom.md"
+          }
+        ]
     secrets:
       token: ${{ secrets.GITHUB_TOKEN }}
 ```
+
+### Option B: External JSON File (Recommended for Multiple Stages)
+
+Store your stages configuration in a separate JSON file for easier management:
+
+**1. Create `.github/prompts/stages.json` in your repo:**
+
+```json
+[
+  {
+    "name": "bug-finder",
+    "repo": "cockroachlabs/ai-pr-review-workflow",
+    "path": "prompts/bug-finder.md",
+    "ref": "v1.0.0"
+  },
+  {
+    "name": "molt-review",
+    "path": ".github/prompts/molt.md"
+  }
+]
+```
+
+**2. Create your workflow file:**
+
+```yaml
+name: AI PR Review
+
+on:
+  pull_request_target:
+    types: [synchronize, ready_for_review, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  fetch-config:
+    uses: cockroachlabs/ai-pr-review-workflow/.github/workflows/fetch-json.yml@v1.0.0
+    with:
+      path: .github/prompts/stages.json
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
+
+  ai-review:
+    needs: fetch-config
+    uses: cockroachlabs/ai-pr-review-workflow/.github/workflows/ai-pr-review.yml@v1.0.0
+    with:
+      stages_json: ${{ needs.fetch-config.outputs.json_string }}
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
+```
+
+## Understanding stages.json Configuration
+
+The `stages_json` parameter defines one or more "review stages" — each stage uses a specific prompt template to analyze your PR.
+
+### Stage Object Properties
+
+Each stage in the array has the following properties:
+
+| Property | Required    | Description                                                                   | Example                                 |
+| -------- | ----------- | ----------------------------------------------------------------------------- | --------------------------------------- |
+| `name`   | ✅ Yes      | Unique identifier for this review stage                                       | `"bug-finder"`                          |
+| `path`   | ✅ Yes      | Path to the prompt markdown file                                              | `"prompts/bug-finder.md"`               |
+| `repo`   | ❌ Optional | Repository containing the prompt (defaults to caller repo)                    | `"cockroachlabs/ai-pr-review-workflow"` |
+| `ref`    | ❌ Optional | Git ref (branch/tag/commit) to fetch prompt from (defaults to default branch) | `"v1.0.0"` or `"main"`                  |
+
+### Stage Types
+
+**1. Shared Prompt from Central Repo:**
+
+```json
+{
+  "name": "bug-finder",
+  "repo": "cockroachlabs/ai-pr-review-workflow",
+  "path": "prompts/bug-finder.md",
+  "ref": "v1.0.0"
+}
+```
+
+- Uses a prompt maintained in the central workflow repo
+- Pin to a specific version with `ref` for stability
+- Good for standardized reviews across multiple repos
+
+**2. Custom Prompt from Your Repo:**
+
+```json
+{
+  "name": "custom-review",
+  "path": ".github/prompts/custom.md"
+}
+```
+
+- Fetches prompt from your own repository
+- No `repo` specified = uses the calling repository
+- Good for repo-specific rules and guidelines
+
+### Multiple Stages Example
+
+Run multiple types of reviews on each PR:
+
+```json
+[
+  {
+    "name": "bug-finder",
+    "repo": "cockroachlabs/ai-pr-review-workflow",
+    "path": "prompts/bug-finder.md",
+    "ref": "v1.0.0"
+  },
+  {
+    "name": "security-check",
+    "repo": "cockroachlabs/ai-pr-review-workflow",
+    "path": "prompts/security.md",
+    "ref": "v1.0.0"
+  },
+  {
+    "name": "team-guidelines",
+    "path": ".github/prompts/team-standards.md"
+  }
+]
+```
+
+This will run three separate AI reviews on each PR, each with a different focus.
+
+### Creating Custom Prompts
+
+1. Use the template at `prompts/[template].md` in this repo as a starting point
+2. Save your custom prompt in your repo (e.g., `.github/prompts/my-review.md`)
+3. Reference it in your `stages.json` configuration
+
+See [prompts/bug-finder.md](prompts/bug-finder.md) for a complete example of a review prompt.
 
 ### 3. Pinning a version of the workflow
 
@@ -110,6 +251,56 @@ safe to specify a pin to a version.
 6. Now, callers can specify the version by replacing "@main" with
    "@version": https://github.com/cockroachlabs/ai-pr-review-workflow/blob/main/example-caller-workflows/example-ai-auth-caller-workflow.yml#L14
 
+## Quick Reference
+
+### Minimal Working Example
+
+```yaml
+# .github/workflows/ai-pr-review.yml
+name: AI PR Review
+
+on:
+  pull_request_target:
+    types: [synchronize, ready_for_review, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  ai-review:
+    uses: cockroachlabs/ai-pr-review-workflow/.github/workflows/ai-pr-review.yml@v1.0.0
+    with:
+      stages_json: |
+        [
+          {
+            "name": "bug-finder",
+            "repo": "cockroachlabs/ai-pr-review-workflow",
+            "path": "prompts/bug-finder.md",
+            "ref": "v1.0.0"
+          }
+        ]
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
+```
+
+### Available Shared Prompts
+
+Prompts maintained in this repository that you can reference:
+
+- `prompts/bug-finder.md` - Comprehensive bug detection focused review
+- `prompts/guidelines.md` - General code quality and style guidelines
+- `prompts/[template].md` - Template for creating custom prompts
+
+### Example Repositories
+
+See complete working examples:
+
+- [example-caller-workflows/](example-caller-workflows/) - Example workflow configurations
+- [example-caller-workflows/stages/](example-caller-workflows/stages/) - Example stages.json files
+
 ## References
 
-Release for custom actions: https://docs.github.com/en/actions/how-tos/create-and-publish-actions/manage-custom-actions
+- Release for custom actions: https://docs.github.com/en/actions/how-tos/create-and-publish-actions/manage-custom-actions
+- Reusable workflows: https://docs.github.com/en/actions/using-workflows/reusing-workflows
