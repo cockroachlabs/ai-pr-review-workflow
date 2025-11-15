@@ -26,7 +26,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/reviews/{review_id}": {
+    "/api/reviews/{ai_review_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -37,7 +37,7 @@ export interface paths {
          * Get Review
          * @description Get a specific AI review by ID.
          */
-        get: operations["get_review_api_reviews__review_id__get"];
+        get: operations["get_review_api_reviews__ai_review_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -88,6 +88,33 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/github/comment/{repo_name}/{comment_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Comment
+         * @description Fetch comment from GitHub (includes diff_hunk snippet).
+         *
+         *     Args:
+         *         repo_name: Repository name in format "owner/repo"
+         *         comment_id: Comment ID
+         *
+         *     Returns:
+         *         Comment data from GitHub including diff_hunk, path, line, body, etc.
+         */
+        get: operations["get_comment_api_github_comment__repo_name___comment_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -125,24 +152,32 @@ export interface components {
             pr_url: string;
             /** Pr Title */
             pr_title?: string | null;
-            /** Comment Id */
-            comment_id: number;
-            /** Comment Url */
-            comment_url: string;
+            /** Pr Review Id */
+            pr_review_id: number;
+            /** Review Comment Id */
+            review_comment_id: number;
+            /** Review Comment Url */
+            review_comment_url: string;
+            /** Original Commit Sha */
+            original_commit_sha?: string | null;
             /** Workflow Version */
             workflow_version?: string | null;
             /**
-             * Posted At
+             * Created At
              * Format: date-time
              */
-            posted_at: string;
+            created_at: string;
             /**
              * Sentiment
              * @default neutral
              */
             sentiment: ("positive" | "negative" | "neutral") | null;
-            /** Review Id */
-            review_id: string;
+            /** Positive Reactions */
+            positive_reactions: number;
+            /** Negative Reactions */
+            negative_reactions: number;
+            /** Ai Review Id */
+            ai_review_id: string;
             /**
              * Last Updated
              * Format: date-time
@@ -226,12 +261,12 @@ export interface operations {
             };
         };
     };
-    get_review_api_reviews__review_id__get: {
+    get_review_api_reviews__ai_review_id__get: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                review_id: string;
+                ai_review_id: string;
             };
             cookie?: never;
         };
@@ -308,6 +343,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RepoResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_comment_api_github_comment__repo_name___comment_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                repo_name: string;
+                comment_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

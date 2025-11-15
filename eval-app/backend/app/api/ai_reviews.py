@@ -22,7 +22,7 @@ async def list_reviews(
 
     Data is populated by the scraper script, not through this API.
     """
-    query = select(AIReview).order_by(desc(AIReview.posted_at))
+    query = select(AIReview).order_by(desc(AIReview.created_at))
 
     if sentiment:
         query = query.where(AIReview.sentiment == sentiment)
@@ -36,14 +36,14 @@ async def list_reviews(
     return reviews
 
 
-@router.get("/{review_id}", response_model=AIReviewResponse)
+@router.get("/{ai_review_id}", response_model=AIReviewResponse)
 async def get_review(
-    review_id: str,
+    ai_review_id: str,
     db: AsyncSession = Depends(get_db),
 ):
     """Get a specific AI review by ID."""
     result = await db.execute(
-        select(AIReview).where(AIReview.review_id == review_id)
+        select(AIReview).where(AIReview.ai_review_id == ai_review_id)
     )
     review = result.scalar_one_or_none()
 

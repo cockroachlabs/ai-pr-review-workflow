@@ -10,15 +10,17 @@ class AIReview(Base):
 
     __tablename__ = "ai_reviews"
 
-    review_id: Mapped[str] = mapped_column(String(255), primary_key=True)
+    ai_review_id: Mapped[str] = mapped_column(String(255), primary_key=True)
     repo_name: Mapped[str] = mapped_column(String(255), nullable=False)
     pr_number: Mapped[int] = mapped_column(Integer, nullable=False)
     pr_url: Mapped[str] = mapped_column(String(500), nullable=False)
     pr_title: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    comment_id: Mapped[int] = mapped_column(Integer, nullable=False)
-    comment_url: Mapped[str] = mapped_column(String(500), nullable=False)
+    pr_review_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    review_comment_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    review_comment_url: Mapped[str] = mapped_column(String(500), nullable=False)
+    original_commit_sha: Mapped[str] = mapped_column(String(255), nullable=True)
     workflow_version: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    posted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
     # Feedback data
     sentiment: Mapped[str | None] = mapped_column(
@@ -26,6 +28,8 @@ class AIReview(Base):
         nullable=True,
         default="neutral"
     )
+    positive_reactions: Mapped[int] = mapped_column(Integer, nullable=False)
+    negative_reactions: Mapped[int] = mapped_column(Integer, nullable=False)
     last_updated: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -40,5 +44,5 @@ class AIReview(Base):
         ),
         Index("idx_sentiment", "sentiment"),
         Index("idx_repo_sentiment", "repo_name", "sentiment"),
-        Index("idx_posted_at", "posted_at"),
+        Index("idx_created_at", "created_at"),
     )
