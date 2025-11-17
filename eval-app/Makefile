@@ -43,7 +43,7 @@ generate-client: ## Generate TypeScript API client from OpenAPI schema (requires
 
 run-scraper: ## Run the GitHub scraper to populate AI review data
 	@echo "Running GitHub scraper..."
-	cd backend && uv run python scraper/github.py
+	cd backend && uv run python scraper/scrape_github.py
 
 dev: ## Start both backend and frontend (requires tmux or run in separate terminals)
 	@echo "Starting full-stack development environment..."
