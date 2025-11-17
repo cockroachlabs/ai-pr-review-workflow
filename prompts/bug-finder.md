@@ -51,6 +51,69 @@ Examine each changed line of code for these categories of potential bugs:
 - Double-free errors or use-after-free bugs
 - Improper cleanup in destructors or finally blocks
 
+**Boundary and Edge Cases:**
+
+- Empty or null collections not handled
+- Zero, negative, or maximum integer values causing issues
+- String operations on empty strings or single characters
+- Array/buffer boundary violations
+- Numeric overflow or underflow in calculations
+
+**State and Data Management:**
+
+- Objects used before initialization
+- Invalid state transitions or states
+- Missing transaction boundaries or improper rollback
+- Data corruption from partial updates
+- Lost updates in concurrent modifications
+- Inconsistent state across distributed components
+
+**Time and Timing Issues:**
+
+- TOCTOU (Time-of-check-time-of-use) race conditions
+- Missing timeouts on network calls or database queries
+- Infinite retry loops without backoff
+- Timestamp comparison bugs (timezone, DST issues)
+- Non-idempotent operations executed multiple times
+- Missing circuit breakers for external dependencies
+
+**API and Integration Issues:**
+
+- Incorrect parameter order in function calls
+- Misunderstanding of library/API contracts
+- Missing required initialization or setup calls
+- Assumptions about return values that may vary
+- Breaking changes to public APIs without versioning
+- Protocol violations in state machine implementations
+- Missing backward compatibility checks
+
+**Configuration and Environment:**
+
+- Hardcoded credentials, paths, or URLs
+- Missing environment variable validation
+- Assumptions about file system layout
+- Configuration values not validated
+- Character encoding/decoding errors
+- Cryptographic weaknesses (weak algorithms, improper key handling)
+
+**Control Flow Issues:**
+
+- Infinite loops with no exit condition
+- Unreachable code after return statements
+- Missing break statements in switch cases
+- Unbounded recursion or missing base cases
+- Error paths that don't properly clean up
+- Early returns that skip cleanup code
+
+**Data Validation and Parsing:**
+
+- User input not validated or sanitized
+- Deserialized data not validated
+- File uploads without size or type checks
+- JSON/XML parsing without error handling
+- Regular expressions vulnerable to ReDoS
+- Integer parsing without bounds checking
+
 ## Review Approach
 
 Be conservative but thorough in your analysis. Ask yourself: "Would I be comfortable if this code went to production and I was personally responsible for any issues it might cause?"
