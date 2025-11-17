@@ -1,10 +1,24 @@
 import { useState, useMemo } from 'react'
-import { Card, Space, Spin, Typography, Input, Select, Row, Col, Empty } from 'antd'
-import { SearchOutlined, SortAscendingOutlined } from '@ant-design/icons'
+import {
+  Box,
+  VStack,
+  Heading,
+  Input,
+  InputGroup,
+  InputLeftElement,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  Button,
+  SimpleGrid,
+  Text,
+  Spinner,
+  Center
+} from '@chakra-ui/react'
+import { SearchIcon, ChevronDownIcon } from '@chakra-ui/icons'
+import { FaSortAmountDown } from 'react-icons/fa'
 import { ReviewCard } from './ReviewCard'
-import { ColorFont3 } from '../tokens'
-
-const { Title, Text } = Typography
 
 interface Review {
   ai_review_id: string
@@ -14,6 +28,7 @@ interface Review {
   pr_title?: string | null
   review_comment_id: number
   review_comment_url: string
+  review_comment_web_url: string
   workflow_version?: string | null
   created_at: string
   sentiment: 'positive' | 'negative' | 'neutral' | null
@@ -30,6 +45,18 @@ type SortOption = 'newest' | 'oldest' | 'repo-asc' | 'repo-desc'
 export const ReviewsList = ({ reviews, loading }: ReviewsListProps) => {
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState<SortOption>('newest')
+
+  const sortOptions = [
+    { value: 'newest', label: 'Newest First', icon: '🕐' },
+    { value: 'oldest', label: 'Oldest First', icon: '🕑' },
+    { value: 'repo-asc', label: 'Repository (A-Z)', icon: '⬆️' },
+    { value: 'repo-desc', label: 'Repository (Z-A)', icon: '⬇️' },
+  ]
+
+  const getSortLabel = () => {
+    const option = sortOptions.find(o => o.value === sortBy)
+    return option ? `${option.icon} ${option.label}` : 'Sort by'
+  }
 
   const filteredAndSortedReviews = useMemo(() => {
     let result = [...reviews]
@@ -64,71 +91,76 @@ export const ReviewsList = ({ reviews, loading }: ReviewsListProps) => {
   }, [reviews, searchQuery, sortBy])
 
   return (
-    <>
-      <div style={{ marginBottom: '16px' }}>
-        <Title level={2} style={{ marginBottom: '10px', fontSize: '20px', fontWeight: 600 }}>
-          Review Activity
-        </Title>
+    <Box>
+      <Heading size="lg" mb={4}>
+        Review Activity
+      </Heading>
 
-        <Row gutter={[8, 10]} style={{ marginBottom: '10px' }}>
-          <Col xs={24} md={16}>
-            <Input
-              size="large"
-              placeholder="Search reviews..."
-              prefix={<SearchOutlined style={{ color: ColorFont3 }} />}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              allowClear
-            />
-          </Col>
-          <Col xs={24} md={8}>
-            <Select
-              size="large"
-              value={sortBy}
-              onChange={setSortBy}
-              style={{ width: '100%' }}
-              suffixIcon={<SortAscendingOutlined />}
-              options={[
-                { value: 'newest', label: 'Newest First' },
-                { value: 'oldest', label: 'Oldest First' },
-                { value: 'repo-asc', label: 'Repository (A-Z)' },
-                { value: 'repo-desc', label: 'Repository (Z-A)' },
-              ]}
-            />
-          </Col>
-        </Row>
+      <SimpleGrid columns={{ base: 1, md: 2 }} spacing={3} mb={4}>
+        <InputGroup>
+          <InputLeftElement pointerEvents="none">
+            <SearchIcon color="gray.400" />
+          </InputLeftElement>
+          <Input
+            placeholder="Search reviews..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </InputGroup>
 
-        {!loading && filteredAndSortedReviews.length !== reviews.length && (
-          <Text type="secondary" style={{ fontSize: '13px' }}>
-            Showing {filteredAndSortedReviews.length} of {reviews.length} reviews
-          </Text>
-        )}
-      </div>
+        <Menu>
+          <MenuButton
+            as={Button}
+            rightIcon={<ChevronDownIcon />}
+            leftIcon={<FaSortAmountDown />}
+            width="100%"
+            textAlign="left"
+            fontWeight="normal"
+          >
+            {getSortLabel()}
+          </MenuButton>
+          <MenuList>
+            {sortOptions.map(({ value, label, icon }) => (
+              <MenuItem
+                key={value}
+                onClick={() => setSortBy(value as SortOption)}
+                bg={sortBy === value ? 'brand.50' : 'transparent'}
+                fontWeight={sortBy === value ? 'semibold' : 'normal'}
+                _hover={{ bg: sortBy === value ? 'brand.100' : 'gray.100' }}
+              >
+                {icon} {label}
+              </MenuItem>
+            ))}
+          </MenuList>
+        </Menu>
+      </SimpleGrid>
+
+      {!loading && filteredAndSortedReviews.length !== reviews.length && (
+        <Text color="gray.600" fontSize="sm" mb={3}>
+          Showing {filteredAndSortedReviews.length} of {reviews.length} reviews
+        </Text>
+      )}
 
       {loading ? (
-        <Card style={{ borderRadius: '16px', textAlign: 'center', padding: '80px 24px', border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-          <Spin size="large" />
-          <div style={{ marginTop: 24 }}>
-            <Text type="secondary" style={{ fontSize: '16px' }}>Loading reviews...</Text>
-          </div>
-        </Card>
+        <Center bg="white" borderRadius="xl" p={20} boxShadow="sm">
+          <VStack spacing={4}>
+            <Spinner size="xl" color="brand.500" thickness="4px" />
+            <Text color="gray.600">Loading reviews...</Text>
+          </VStack>
+        </Center>
       ) : filteredAndSortedReviews.length === 0 ? (
-        <Card style={{ borderRadius: '16px', textAlign: 'center', padding: '80px 24px', border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-          <Empty
-            description={
-              <Text type="secondary" style={{ fontSize: '16px' }}>
-                {searchQuery ? 'No reviews match your search' : 'No reviews found'}
-              </Text>
-            }
-          />
-        </Card>
+        <Center bg="white" borderRadius="xl" p={20} boxShadow="sm">
+          <Text color="gray.500">
+            {searchQuery ? 'No reviews match your search' : 'No reviews found'}
+          </Text>
+        </Center>
       ) : (
-        <Space direction="vertical" size={10} style={{ width: '100%' }}>
+        <VStack spacing={3} align="stretch">
           {filteredAndSortedReviews.map((review) => (
             <ReviewCard key={review.ai_review_id} review={review} />
           ))}
-        </Space>
+        </VStack>
       )}
-    </>
+    </Box>
   )
 }

@@ -1,8 +1,6 @@
-import { Card, Row, Col, Space, Select, Typography, Segmented } from 'antd'
-import { ColorFont3, ColorCoreNeutral1 } from '../tokens'
+import { Box, SimpleGrid, VStack, Text, Button, ButtonGroup, Menu, MenuButton, MenuList, MenuItem } from '@chakra-ui/react'
+import { ChevronDownIcon } from '@chakra-ui/icons'
 import { Repo } from '../types'
-
-const { Text } = Typography
 
 interface FiltersCardProps {
   sentimentFilter: string
@@ -23,87 +21,144 @@ export const FiltersCard = ({
   onDaysChange,
   repos,
 }: FiltersCardProps) => {
-  const repoOptions = [
-    { value: 'all', label: 'All Repositories' },
-    ...repos.map(repo => ({
-      value: repo.repo_name,
-      label: repo.repo_name,
-    }))
+  const dayOptions = [
+    { label: '7D', value: 7 },
+    { label: '14D', value: 14 },
+    { label: '30D', value: 30 },
+    { label: '90D', value: 90 },
   ]
 
+  const sentimentOptions = [
+    { value: 'all', label: 'All Sentiments', emoji: '📊' },
+    { value: 'positive', label: 'Positive', emoji: '👍' },
+    { value: 'negative', label: 'Negative', emoji: '👎' },
+    { value: 'neutral', label: 'Neutral', emoji: '😐' },
+  ]
+
+  const getSentimentLabel = () => {
+    const option = sentimentOptions.find(o => o.value === sentimentFilter)
+    return option ? `${option.emoji} ${option.label}` : 'Select Sentiment'
+  }
+
+  const getRepoLabel = () => {
+    if (repoFilter === 'all') return '📁 All Repositories'
+    return `📁 ${repoFilter}`
+  }
+
   return (
-    <Card
-      style={{
-        marginBottom: '24px',
-        borderRadius: '12px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-        background: ColorCoreNeutral1,
-      }}
-      styles={{
-        body: { padding: '16px' }
-      }}
+    <Box
+      bg="white"
+      borderRadius="xl"
+      p={4}
+      mb={6}
+      boxShadow="sm"
     >
-      <Row gutter={[12, 12]}>
-        <Col xs={24} md={8}>
-          <Space direction="vertical" size={8} style={{ width: '100%' }}>
-            <Text strong style={{ fontSize: '12px', color: ColorFont3, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Time Range
-            </Text>
-            <Segmented
-              value={daysFilter}
-              onChange={(value) => onDaysChange(value as number)}
-              options={[
-                { label: '7D', value: 7 },
-                { label: '14D', value: 14 },
-                { label: '30D', value: 30 },
-                { label: '90D', value: 90 },
-              ]}
-              block
-              size="large"
-              style={{
-                backgroundColor: '#f0f0f0',
-              }}
-            />
-          </Space>
-        </Col>
-        <Col xs={24} md={8}>
-          <Space direction="vertical" size={8} style={{ width: '100%' }}>
-            <Text strong style={{ fontSize: '12px', color: ColorFont3, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Sentiment
-            </Text>
-            <Select
-              value={sentimentFilter}
-              onChange={onSentimentChange}
-              size="large"
-              style={{ width: '100%' }}
-              options={[
-                { value: 'all', label: 'All Sentiments' },
-                { value: 'positive', label: '👍 Positive' },
-                { value: 'negative', label: '👎 Negative' },
-                { value: 'neutral', label: '😐 Neutral' },
-              ]}
-            />
-          </Space>
-        </Col>
-        <Col xs={24} md={8}>
-          <Space direction="vertical" size={8} style={{ width: '100%' }}>
-            <Text strong style={{ fontSize: '12px', color: ColorFont3, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Repository
-            </Text>
-            <Select
-              value={repoFilter}
-              onChange={onRepoChange}
-              size="large"
-              style={{ width: '100%' }}
-              options={repoOptions}
-              showSearch
-              filterOption={(input, option) =>
-                (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-              }
-            />
-          </Space>
-        </Col>
-      </Row>
-    </Card>
+      <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
+        <VStack align="stretch" spacing={2}>
+          <Text
+            fontSize="xs"
+            fontWeight="semibold"
+            color="gray.600"
+            textTransform="uppercase"
+            letterSpacing="wide"
+          >
+            Time Range
+          </Text>
+          <ButtonGroup isAttached size="md" width="100%">
+            {dayOptions.map(({ label, value }) => (
+              <Button
+                key={value}
+                onClick={() => onDaysChange(value)}
+                colorScheme={daysFilter === value ? 'brand' : 'gray'}
+                variant={daysFilter === value ? 'solid' : 'outline'}
+                flex="1"
+              >
+                {label}
+              </Button>
+            ))}
+          </ButtonGroup>
+        </VStack>
+
+        <VStack align="stretch" spacing={2}>
+          <Text
+            fontSize="xs"
+            fontWeight="semibold"
+            color="gray.600"
+            textTransform="uppercase"
+            letterSpacing="wide"
+          >
+            Sentiment
+          </Text>
+          <Menu>
+            <MenuButton
+              as={Button}
+              rightIcon={<ChevronDownIcon />}
+              width="100%"
+              textAlign="left"
+              fontWeight="normal"
+            >
+              {getSentimentLabel()}
+            </MenuButton>
+            <MenuList>
+              {sentimentOptions.map(({ value, label, emoji }) => (
+                <MenuItem
+                  key={value}
+                  onClick={() => onSentimentChange(value)}
+                  bg={sentimentFilter === value ? 'brand.50' : 'transparent'}
+                  fontWeight={sentimentFilter === value ? 'semibold' : 'normal'}
+                  _hover={{ bg: sentimentFilter === value ? 'brand.100' : 'gray.100' }}
+                >
+                  {emoji} {label}
+                </MenuItem>
+              ))}
+            </MenuList>
+          </Menu>
+        </VStack>
+
+        <VStack align="stretch" spacing={2}>
+          <Text
+            fontSize="xs"
+            fontWeight="semibold"
+            color="gray.600"
+            textTransform="uppercase"
+            letterSpacing="wide"
+          >
+            Repository
+          </Text>
+          <Menu>
+            <MenuButton
+              as={Button}
+              rightIcon={<ChevronDownIcon />}
+              width="100%"
+              textAlign="left"
+              fontWeight="normal"
+            >
+              {getRepoLabel()}
+            </MenuButton>
+            <MenuList maxH="300px" overflowY="auto">
+              <MenuItem
+                onClick={() => onRepoChange('all')}
+                bg={repoFilter === 'all' ? 'brand.50' : 'transparent'}
+                fontWeight={repoFilter === 'all' ? 'semibold' : 'normal'}
+                _hover={{ bg: repoFilter === 'all' ? 'brand.100' : 'gray.100' }}
+              >
+                📁 All Repositories
+              </MenuItem>
+              {repos.map((repo) => (
+                <MenuItem
+                  key={repo.repo_name}
+                  onClick={() => onRepoChange(repo.repo_name)}
+                  bg={repoFilter === repo.repo_name ? 'brand.50' : 'transparent'}
+                  fontWeight={repoFilter === repo.repo_name ? 'semibold' : 'normal'}
+                  _hover={{ bg: repoFilter === repo.repo_name ? 'brand.100' : 'gray.100' }}
+                >
+                  📁 {repo.repo_name}
+                </MenuItem>
+              ))}
+            </MenuList>
+          </Menu>
+        </VStack>
+      </SimpleGrid>
+    </Box>
   )
 }

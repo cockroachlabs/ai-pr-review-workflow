@@ -1,7 +1,6 @@
 import { useEffect, useState, useMemo } from 'react'
-import { Alert, Row, Col } from 'antd'
+import { Box, Container, SimpleGrid, Alert, AlertIcon, AlertTitle, AlertDescription } from '@chakra-ui/react'
 import { client } from './client'
-import { ColorCoreNeutral1, ColorCoreNeutral0 } from './tokens'
 import {
   Header,
   FiltersCard,
@@ -97,12 +96,8 @@ function App() {
   const repoStats = useMemo(() => calculateRepoStats(filteredReviewsByDays), [filteredReviewsByDays])
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: `linear-gradient(to bottom, ${ColorCoreNeutral1}, ${ColorCoreNeutral0})`,
-      padding: '20px 12px'
-    }}>
-      <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+    <Box minH="100vh" bg="neutral.100" py={6} px={4}>
+      <Container maxW="1400px">
         <Header totalReviews={filteredReviewsByDays.length} />
 
         <FiltersCard
@@ -122,27 +117,23 @@ function App() {
         />
 
         {error && (
-          <Alert
-            type="error"
-            message="Error Loading Reviews"
-            description={error}
-            showIcon
-            style={{ marginBottom: 24, borderRadius: '12px' }}
-          />
+          <Alert status="error" borderRadius="lg" mb={6}>
+            <AlertIcon />
+            <Box>
+              <AlertTitle>Error Loading Reviews</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Box>
+          </Alert>
         )}
 
-        <Row gutter={[12, 12]} style={{ marginBottom: '20px' }}>
-          <Col xs={24} lg={12}>
-            <TrendChart data={dailyTrends} />
-          </Col>
-          <Col xs={24} lg={12}>
-            <RepositoryPerformanceChart data={repoStats} maxRepos={5} />
-          </Col>
-        </Row>
+        <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={4} mb={6}>
+          <TrendChart data={dailyTrends} />
+          <RepositoryPerformanceChart data={repoStats} maxRepos={5} />
+        </SimpleGrid>
 
         <ReviewsList reviews={reviews} loading={loading} />
-      </div>
-    </div>
+      </Container>
+    </Box>
   )
 }
 

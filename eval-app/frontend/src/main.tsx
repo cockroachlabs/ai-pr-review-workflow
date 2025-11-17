@@ -1,14 +1,13 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { ConfigProvider } from 'antd'
+import { ChakraProvider } from '@chakra-ui/react'
 import App from './App.tsx'
-import { crlTheme } from './theme'
-import 'antd/dist/reset.css'
+import theme from './theme'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <ConfigProvider theme={crlTheme}>
+    <ChakraProvider theme={theme}>
       <App />
-    </ConfigProvider>
+    </ChakraProvider>
   </React.StrictMode>,
 )

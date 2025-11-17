@@ -1,9 +1,6 @@
-import { Card, Typography, Empty } from 'antd'
+import { Box, Heading, Text, VStack } from '@chakra-ui/react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
-import { ColorBaseSuccess, ColorBaseDanger, ColorBaseWarning } from '../tokens'
 import { RepoStats } from '../utils/analytics'
-
-const { Title, Text } = Typography
 
 interface RepositoryPerformanceChartProps {
   data: RepoStats[]
@@ -16,30 +13,16 @@ export const RepositoryPerformanceChart = ({ data, maxRepos = 5 }: RepositoryPer
 
   if (topRepos.length === 0) {
     return (
-      <Card
-        style={{
-          borderRadius: '12px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-          marginBottom: '32px',
-        }}
-        styles={{
-          body: { padding: '18px 16px' }
-        }}
-      >
-        <Title level={3} style={{ marginBottom: '16px', fontSize: '18px', fontWeight: 600 }}>
+      <Box bg="white" borderRadius="xl" p={5} boxShadow="sm">
+        <Heading size="md" mb={4}>
           Repository Performance
-        </Title>
-        <div style={{ padding: '30px 10px', textAlign: 'center' }}>
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description={
-              <Text type="secondary" style={{ fontSize: '13px' }}>
-                No repository data available
-              </Text>
-            }
-          />
-        </div>
-      </Card>
+        </Heading>
+        <VStack py={10}>
+          <Text color="gray.500" fontSize="sm">
+            No repository data available
+          </Text>
+        </VStack>
+      </Box>
     )
   }
 
@@ -57,50 +40,40 @@ export const RepositoryPerformanceChart = ({ data, maxRepos = 5 }: RepositoryPer
     if (active && payload && payload.length) {
       const data = payload[0].payload
       return (
-        <div
-          style={{
-            backgroundColor: '#fff',
-            border: '1px solid #d9d9d9',
-            borderRadius: '8px',
-            padding: '12px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-          }}
+        <Box
+          bg="white"
+          border="1px solid"
+          borderColor="gray.200"
+          borderRadius="md"
+          p={3}
+          boxShadow="md"
         >
-          <Text strong style={{ display: 'block', marginBottom: '8px' }}>
+          <Text fontWeight="bold" mb={2}>
             {data.fullName}
           </Text>
-          <div style={{ fontSize: '13px' }}>
-            <div style={{ color: ColorBaseSuccess }}>
+          <VStack align="stretch" spacing={1} fontSize="sm">
+            <Text color="green.500">
               Positive: {data.positive} ({data.positiveRate.toFixed(1)}%)
-            </div>
-            <div style={{ color: ColorBaseDanger }}>
+            </Text>
+            <Text color="red.500">
               Negative: {data.negative}
-            </div>
-            <div style={{ color: ColorBaseWarning }}>
+            </Text>
+            <Text color="orange.500">
               Neutral: {data.neutral}
-            </div>
-          </div>
-        </div>
+            </Text>
+          </VStack>
+        </Box>
       )
     }
     return null
   }
 
   return (
-    <Card
-      style={{
-        borderRadius: '12px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-        marginBottom: '32px',
-      }}
-      styles={{
-        body: { padding: '18px 16px' }
-      }}
-    >
-      <Title level={3} style={{ marginBottom: '4px', fontSize: '18px', fontWeight: 600 }}>
+    <Box bg="white" borderRadius="xl" p={5} boxShadow="sm">
+      <Heading size="md" mb={1}>
         Repository Performance
-      </Title>
-      <Text type="secondary" style={{ display: 'block', marginBottom: '16px', fontSize: '12px' }}>
+      </Heading>
+      <Text color="gray.600" fontSize="sm" mb={4}>
         Top {maxRepos} repositories by review volume
       </Text>
       <ResponsiveContainer width="100%" height={280}>
@@ -128,23 +101,23 @@ export const RepositoryPerformanceChart = ({ data, maxRepos = 5 }: RepositoryPer
           <Bar
             dataKey="positive"
             name="Positive"
-            fill={ColorBaseSuccess}
+            fill="#38a169"
             radius={[4, 4, 0, 0]}
           />
           <Bar
             dataKey="negative"
             name="Negative"
-            fill={ColorBaseDanger}
+            fill="#e53e3e"
             radius={[4, 4, 0, 0]}
           />
           <Bar
             dataKey="neutral"
             name="Neutral"
-            fill={ColorBaseWarning}
+            fill="#ed8936"
             radius={[4, 4, 0, 0]}
           />
         </BarChart>
       </ResponsiveContainer>
-    </Card>
+    </Box>
   )
 }

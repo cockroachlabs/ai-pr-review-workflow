@@ -10,11 +10,15 @@
     "generate-client": "openapi-typescript http://127.0.0.1:8000/openapi.json -o src/client/schema.ts && node scripts/generate-client.js"
   },
   "dependencies": {
-    "@ant-design/icons": "^5.5.1",
-    "antd": "5.20.3",
+    "@chakra-ui/react": "^2.8.2",
+    "@chakra-ui/icons": "^2.1.1",
+    "@emotion/react": "^11.11.4",
+    "@emotion/styled": "^11.11.5",
+    "framer-motion": "^11.2.10",
     "react": "^18.3.1",
     "react-diff-viewer-continued": "^3.4.0",
     "react-dom": "^18.3.1",
+    "react-icons": "^5.2.1",
     "react-markdown": "^10.1.0",
     "react-syntax-highlighter": "^16.1.0",
     "recharts": "^3.4.1"

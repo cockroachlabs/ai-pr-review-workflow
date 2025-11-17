@@ -1,137 +1,83 @@
-import type { ThemeConfig } from "antd";
-import {
-  ColorBackgroundBase,
-  ColorBaseDanger,
-  ColorBaseSuccess,
-  ColorBaseWarning,
-  ColorCoreRed4,
-  ColorFont2,
-  ColorFont3,
-  ColorFont4,
-  TypeFamilyCode,
-  TypeFamilyUi,
-  // CRL Design System Brand Colors
-  BrandActionBlue,
-  BrandElectricPurple,
-  BrandLightBlue,
-  // CRL Core Neutrals
-  ColorCoreNeutral1,
-  ColorCoreNeutral2,
-  ColorCoreNeutral3,
-  ColorCoreNeutral6,
-} from "./tokens";
+import { extendTheme, type ThemeConfig } from '@chakra-ui/react'
 
-/** Setting the AntD theme allows us to customize styling so that AntD
- * components match CRL style guidelines.
- *
- * For global overrides that cannot be configured with tokens, please
- * put styles in `assets/css/global/_overrides.scss`.
- *
- * @see https://ant.design/docs/react/customize-theme */
-export const crlTheme: ThemeConfig = {
-  token: {
-    borderRadius: 2,
-    colorBgLayout: ColorBackgroundBase,
-    colorBgSpotlight: ColorCoreNeutral6,
-    colorBorder: ColorCoreNeutral3,
-    colorBorderSecondary: ColorCoreNeutral2,
-    colorFill: ColorCoreNeutral3,
-    colorFillSecondary: ColorCoreNeutral2,
-    colorFillTertiary: ColorCoreNeutral1,
-    colorFillQuaternary: ColorCoreNeutral1,
-    colorError: ColorBaseDanger,
-    colorInfo: BrandActionBlue,
-    colorPrimary: BrandElectricPurple,
-    colorSuccess: ColorBaseSuccess,
-    colorWarning: ColorBaseWarning,
-    colorText: ColorFont2,
-    colorTextSecondary: ColorFont3,
-    colorTextTertiary: ColorFont4,
-    colorTextQuaternary: ColorFont4,
-    // The trailing CC is 80% opacity.
-    // https://gist.github.com/lopspower/03fb1cc0ac9f32ef38f4
-    colorBgMask: `${ColorCoreNeutral6}CC`,
-    fontFamily: TypeFamilyUi,
-    fontFamilyCode: TypeFamilyCode,
-    fontSizeHeading1: 28,
-    fontSizeHeading2: 24,
-    fontSizeHeading3: 20,
-    fontSizeHeading4: 16,
-    fontSizeHeading5: 16,
-    lineHeight: 1.7,
-    lineHeightHeading1: 1.7,
-    lineHeightHeading2: 2,
-    lineHeightHeading3: 1.6,
-    lineHeightHeading4: 1.5,
-    lineHeightHeading5: 1.5,
-    controlHeight: 40, // Should match $crl-input-height.
+const config: ThemeConfig = {
+  initialColorMode: 'light',
+  useSystemColorMode: false,
+}
+
+const theme = extendTheme({
+  config,
+  colors: {
+    brand: {
+      // Primary colors
+      deepPurple: '#190f33',
+      darkBlue: '#0037A5',
+      electricPurple: '#6933ff',
+      iridescentBlue: '#00fced',
+      // Secondary colors
+      actionBlue: '#0055ff',
+      lightBlue: '#c2d5ff',
+      actionPurple: '#b921f1',
+      lightPurple: '#f7d6ff',
+      // Chakra scale for components
+      50: '#f7d6ff',
+      100: '#c2d5ff',
+      200: '#b88aff',
+      300: '#9c5bff',
+      400: '#6933ff',
+      500: '#6933ff', // Electric purple as primary
+      600: '#0037A5', // Dark blue
+      700: '#190f33', // Deep purple
+      800: '#190f33',
+      900: '#190f33',
+    },
+    // Neutrals
+    neutral: {
+      50: '#FFFFFF',
+      100: '#F5F7FA',
+      200: '#E7ECF3',
+      300: '#D6DBE7',
+      400: '#C0C6D9',
+      500: '#7E89A9',
+      600: '#475872',
+      700: '#394455',
+      800: '#242A35',
+      900: '#060C12',
+    },
+    sentiment: {
+      positive: '#38a169',
+      negative: '#e53e3e',
+      neutral: '#ed8936',
+    },
+  },
+  fonts: {
+    heading: `-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif`,
+    body: `-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif`,
+    mono: `'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace`,
+  },
+  styles: {
+    global: {
+      body: {
+        bg: 'neutral.100',
+        color: 'neutral.800',
+      },
+    },
   },
   components: {
-    Modal: {
-      padding: 0,
-      paddingContentHorizontal: 0,
-      paddingContentHorizontalSM: 0,
-      paddingContentHorizontalLG: 0,
-      paddingContentVertical: 0,
-      paddingContentVerticalSM: 0,
-      paddingContentVerticalLG: 0,
-      paddingLG: 0,
-      paddingMD: 0,
-      paddingSM: 0,
-      paddingXL: 0,
-      paddingXS: 0,
-      paddingXXS: 0,
-    },
-    Dropdown: {
-      controlItemBgHover: BrandLightBlue,
-      controlItemBgActive: BrandLightBlue,
-      controlItemBgActiveHover: BrandLightBlue,
-      colorError: ColorCoreRed4,
-    },
-    Table: {
-      colorFillAlter: "transparent",
-      colorFillSecondary: "transparent",
-      colorFillContent: "transparent",
-    },
-    Select: {
-      borderRadius: 3,
-      controlOutline: `${BrandElectricPurple}66`,
-      controlItemBgHover: "transparent",
-      optionActiveBg: BrandLightBlue,
-    },
-    Tabs: {
-      lineHeight: 1.5,
-      colorPrimaryActive: BrandElectricPurple,
-      colorPrimaryText: BrandElectricPurple,
-      colorPrimaryTextHover: BrandElectricPurple,
-      colorPrimaryHover: BrandElectricPurple,
-      fontSize: 16,
-      colorBorderSecondary: ColorCoreNeutral3,
-    },
-    Pagination: {
-      controlHeightSM: 24,
-      colorBgTextHover: "transparent",
-      colorBgTextActive: "transparent",
-    },
-    Tooltip: {
-      controlHeight: 32,
-    },
-    Slider: {
-      trackBg: BrandElectricPurple,
-      trackHoverBg: BrandElectricPurple,
-      handleColor: BrandElectricPurple,
-      handleActiveColor: BrandElectricPurple,
-      railBg: ColorCoreNeutral3,
-      railHoverBg: ColorCoreNeutral3,
-      dotActiveBorderColor: BrandElectricPurple,
-      dotBorderColor: ColorCoreNeutral3,
-    },
-    Segmented: {
-      itemSelectedBg: BrandElectricPurple,
-      itemSelectedColor: "#ffffff",
-      trackBg: "#f0f0f0",
+    Card: {
+      baseStyle: {
+        container: {
+          bg: 'white',
+          borderRadius: 'lg',
+          boxShadow: 'sm',
+          transition: 'all 0.2s',
+          _hover: {
+            boxShadow: 'md',
+          },
+        },
+      },
     },
   },
-};
+})
 
-export const antdPrefixCls = "crl-ant";
+export default theme

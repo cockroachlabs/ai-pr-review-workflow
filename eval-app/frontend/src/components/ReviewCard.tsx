@@ -1,17 +1,25 @@
 import { useState } from 'react'
-import { Card, Space, Tag, Typography, Button, Spin, Alert } from 'antd'
-import { ClockCircleOutlined, BranchesOutlined, GithubOutlined, DownOutlined, UpOutlined } from '@ant-design/icons'
 import {
-  ColorCoreNeutral3,
-  ColorBaseSuccess,
-  ColorBaseDanger,
-  ColorBaseWarning
-} from '../tokens'
+  Box,
+  VStack,
+  HStack,
+  Text,
+  Link,
+  Badge,
+  Button,
+  Collapse,
+  Spinner,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
+  useColorModeValue
+} from '@chakra-ui/react'
+import { ChevronDownIcon, ChevronUpIcon, ExternalLinkIcon } from '@chakra-ui/icons'
+import { FaGithub, FaClock, FaCodeBranch } from 'react-icons/fa'
 import { fetchComment, GitHubComment } from '../utils/github'
 import { DiffViewer } from './DiffViewer'
 import { CommentViewer } from './CommentViewer'
-
-const { Text, Link } = Typography
 
 interface ReviewCardProps {
   review: {
@@ -35,20 +43,31 @@ export const ReviewCard = ({ review }: ReviewCardProps) => {
   const [error, setError] = useState<string | null>(null)
   const [comment, setComment] = useState<GitHubComment | null>(null)
 
-  const getSentimentConfig = (sentiment: string | null) => {
+  const getSentimentColor = (sentiment: string | null) => {
     switch (sentiment) {
       case 'positive':
-        return { color: 'success', badgeColor: ColorBaseSuccess, label: 'Positive' }
+        return 'green'
       case 'negative':
-        return { color: 'error', badgeColor: ColorBaseDanger, label: 'Negative' }
+        return 'red'
       case 'neutral':
-        return { color: 'warning', badgeColor: ColorBaseWarning, label: 'Neutral' }
+        return 'orange'
       default:
-        return { color: 'default', badgeColor: '#d9d9d9', label: 'Unknown' }
+        return 'gray'
     }
   }
 
-  const sentimentConfig = getSentimentConfig(review.sentiment)
+  const getSentimentLabel = (sentiment: string | null) => {
+    switch (sentiment) {
+      case 'positive':
+        return 'Positive'
+      case 'negative':
+        return 'Negative'
+      case 'neutral':
+        return 'Neutral'
+      default:
+        return 'Unknown'
+    }
+  }
 
   const handleExpand = async () => {
     if (expanded) {
@@ -76,67 +95,63 @@ export const ReviewCard = ({ review }: ReviewCardProps) => {
     }
   }
 
+  const borderColor = useColorModeValue('gray.200', 'gray.700')
+  const sentimentColor = getSentimentColor(review.sentiment)
+  const sentimentBorderColor = `${sentimentColor}.400`
+
   return (
-    <Card
-      style={{
-        borderRadius: '8px',
-        border: `1px solid ${ColorCoreNeutral3}`,
-        borderLeft: `3px solid ${sentimentConfig.badgeColor}`,
-        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-        boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
-      }}
-      styles={{
-        body: { padding: '12px 14px' }
-      }}
+    <Box
+      bg="white"
+      borderRadius="lg"
+      borderWidth="1px"
+      borderColor={borderColor}
+      borderLeftWidth="4px"
+      borderLeftColor={sentimentBorderColor}
+      p={4}
+      boxShadow="sm"
+      transition="all 0.2s"
+      _hover={{ boxShadow: 'md' }}
     >
-      <Space direction="vertical" size={8} style={{ width: '100%' }}>
+      <VStack align="stretch" spacing={3}>
         {/* Header: Title + Sentiment Badge */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
+        <HStack justify="space-between" align="start">
+          <VStack align="stretch" spacing={1} flex="1">
             <Link
               href={review.pr_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                fontSize: '15px',
-                fontWeight: 600,
-                display: 'block',
-                marginBottom: '4px',
-                lineHeight: '1.3',
-              }}
+              isExternal
+              fontSize="md"
+              fontWeight="semibold"
+              color="brand.600"
+              _hover={{ color: 'brand.700', textDecoration: 'underline' }}
             >
               {review.pr_title || `PR #${review.pr_number}`}
             </Link>
-            <Space size={6} wrap>
-              <Text type="secondary" style={{ fontSize: '12px', fontWeight: 500 }}>
-                <BranchesOutlined style={{ marginRight: '4px' }} />
-                {review.repo_name}
-              </Text>
-              <Text type="secondary" style={{ fontSize: '12px' }}>
-                #{review.pr_number}
-              </Text>
-            </Space>
-          </div>
-          <Tag
-            color={sentimentConfig.badgeColor}
-            style={{
-              fontSize: '10px',
-              fontWeight: 600,
-              margin: 0,
-              padding: '1px 7px',
-              borderRadius: '4px',
-              lineHeight: '18px',
-            }}
+            <HStack spacing={2} fontSize="sm" color="gray.600">
+              <HStack spacing={1}>
+                <FaCodeBranch />
+                <Text>{review.repo_name}</Text>
+              </HStack>
+              <Text>•</Text>
+              <Text>#{review.pr_number}</Text>
+            </HStack>
+          </VStack>
+          <Badge
+            colorScheme={sentimentColor}
+            fontSize="xs"
+            px={2}
+            py={1}
+            borderRadius="md"
+            textTransform="uppercase"
           >
-            {sentimentConfig.label}
-          </Tag>
-        </div>
+            {getSentimentLabel(review.sentiment)}
+          </Badge>
+        </HStack>
 
         {/* Metadata Row */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
-          <Space size={10} wrap>
-            <Text type="secondary" style={{ fontSize: '11px' }}>
-              <ClockCircleOutlined style={{ marginRight: '4px' }} />
+        <HStack justify="space-between" flexWrap="wrap" gap={2}>
+          <HStack spacing={2} fontSize="xs" color="gray.600">
+            <FaClock />
+            <Text>
               {new Date(review.created_at).toLocaleDateString('en-US', {
                 month: 'short',
                 day: 'numeric',
@@ -145,62 +160,65 @@ export const ReviewCard = ({ review }: ReviewCardProps) => {
                 minute: '2-digit'
               })}
             </Text>
-          </Space>
-          <Space size={6}>
+          </HStack>
+          <HStack spacing={2}>
             <Button
-              type="link"
-              size="small"
+              as="a"
               href={review.review_comment_web_url}
               target="_blank"
               rel="noopener noreferrer"
-              icon={<GithubOutlined />}
-              style={{ fontSize: '11px', padding: '0 6px', height: '24px' }}
+              size="sm"
+              leftIcon={<FaGithub />}
+              rightIcon={<ExternalLinkIcon />}
+              variant="outline"
+              colorScheme="gray"
             >
-              GitHub
+              View on GitHub
             </Button>
             <Button
-              type="text"
-              size="small"
+              size="sm"
               onClick={handleExpand}
-              loading={loading}
-              icon={expanded ? <UpOutlined /> : <DownOutlined />}
-              style={{ fontSize: '11px', height: '24px' }}
+              isLoading={loading}
+              rightIcon={expanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
+              variant="ghost"
             >
               {expanded ? 'Hide' : 'Details'}
             </Button>
-          </Space>
-        </div>
+          </HStack>
+        </HStack>
+
+        {/* Error */}
+        {error && (
+          <Alert status="error" borderRadius="md">
+            <AlertIcon />
+            <Box>
+              <AlertTitle>Failed to load details</AlertTitle>
+              <AlertDescription fontSize="sm">{error}</AlertDescription>
+            </Box>
+          </Alert>
+        )}
 
         {/* Expanded Content */}
-        {error && (
-          <Alert
-            type="error"
-            message="Failed to load details"
-            description={error}
-            showIcon
-            closable
-            onClose={() => setError(null)}
-          />
-        )}
+        <Collapse in={expanded} animateOpacity>
+          {loading && (
+            <Box textAlign="center" py={8}>
+              <Spinner size="md" color="brand.500" />
+              <Text mt={2} fontSize="sm" color="gray.600">
+                Loading comment...
+              </Text>
+            </Box>
+          )}
 
-        {expanded && !loading && comment && (
-          <div style={{ marginTop: '4px' }}>
-            {comment.diff_hunk && (
-              <DiffViewer diffHunk={comment.diff_hunk} filePath={comment.path} />
-            )}
-            <CommentViewer comment={comment} />
-          </div>
-        )}
-
-        {loading && (
-          <div style={{ textAlign: 'center', padding: '16px' }}>
-            <Spin size="small" />
-            <div style={{ marginTop: 8 }}>
-              <Text type="secondary" style={{ fontSize: '11px' }}>Loading comment...</Text>
-            </div>
-          </div>
-        )}
-      </Space>
-    </Card>
+          {!loading && comment && (
+            <VStack align="stretch" spacing={4} mt={2}>
+              {comment.diff_hunk && (
+                <DiffViewer diffHunk={comment.diff_hunk} filePath={comment.path} />
+              )}
+              <CommentViewer comment={comment} />
+            </VStack>
+          )}
+        </Collapse>
+      </VStack>
+    </Box>
   )
 }
