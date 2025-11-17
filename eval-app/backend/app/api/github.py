@@ -22,6 +22,9 @@ def parse_repo_name(repo_name: str) -> tuple[str, str]:
     return parts[0], parts[1]
 
 
+# TODO: Instead of hitting the GitHub API, we should scrape this information when we 
+# do the scraping cron job and just update the database with a cached entry. This 
+# would be more efficient than making a Github API call every time a review comes through. 
 @router.get("/comment/{repo_name:path}/{comment_id}")
 async def get_comment(repo_name: str, comment_id: int):
     """Fetch comment from GitHub (includes diff_hunk snippet).
