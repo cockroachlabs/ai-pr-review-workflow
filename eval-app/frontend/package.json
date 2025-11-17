@@ -10,12 +10,19 @@
     "generate-client": "openapi-typescript http://127.0.0.1:8000/openapi.json -o src/client/schema.ts && node scripts/generate-client.js"
   },
   "dependencies": {
+    "@ant-design/icons": "^5.5.1",
+    "antd": "5.20.3",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-diff-viewer-continued": "^3.4.0",
+    "react-dom": "^18.3.1",
+    "react-markdown": "^10.1.0",
+    "react-syntax-highlighter": "^16.1.0",
+    "recharts": "^3.4.1"
   },
   "devDependencies": {
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
+    "@types/react-syntax-highlighter": "^15.5.13",
     "@vitejs/plugin-react": "^4.3.3",
     "openapi-fetch": "^0.12.2",
     "openapi-typescript": "^7.4.3",
