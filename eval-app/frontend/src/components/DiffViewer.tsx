@@ -1,4 +1,4 @@
-import { Card } from 'antd'
+import { Box, Text } from '@chakra-ui/react'
 
 interface DiffViewerProps {
   diffHunk: string
@@ -31,53 +31,48 @@ export const DiffViewer = ({ diffHunk, filePath }: DiffViewerProps) => {
       }
 
       return (
-        <div
+        <Box
           key={index}
-          style={{
-            backgroundColor,
-            padding: '2px 12px',
-            fontFamily: '"Roboto Mono", monospace',
-            fontSize: '12px',
-            lineHeight: '20px',
-            whiteSpace: 'pre',
-            color,
-          }}
+          bg={backgroundColor}
+          px={3}
+          py="2px"
+          fontFamily="mono"
+          fontSize="xs"
+          lineHeight="tall"
+          whiteSpace="pre"
+          color={color}
         >
           {lineContent || ' '}
-        </div>
+        </Box>
       )
     })
   }
 
   return (
-    <Card
-      style={{
-        marginTop: '16px',
-        borderRadius: '8px',
-        background: '#0d1117',
-        border: '1px solid #30363d',
-      }}
-      styles={{
-        body: { padding: '0' }
-      }}
+    <Box
+      bg="#0d1117"
+      borderRadius="lg"
+      borderWidth="1px"
+      borderColor="#30363d"
+      overflow="hidden"
     >
       {filePath && (
-        <div
-          style={{
-            padding: '8px 12px',
-            borderBottom: '1px solid #30363d',
-            fontFamily: '"Roboto Mono", monospace',
-            fontSize: '12px',
-            color: '#8b949e',
-            background: '#161b22',
-          }}
+        <Box
+          px={3}
+          py={2}
+          borderBottomWidth="1px"
+          borderColor="#30363d"
+          fontFamily="mono"
+          fontSize="xs"
+          color="#8b949e"
+          bg="#161b22"
         >
           {filePath}
-        </div>
+        </Box>
       )}
-      <div style={{ overflow: 'auto' }}>
+      <Box overflowX="auto">
         {renderDiffLines()}
-      </div>
-    </Card>
+      </Box>
+    </Box>
   )
 }

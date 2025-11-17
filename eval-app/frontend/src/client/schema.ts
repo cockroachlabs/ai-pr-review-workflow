@@ -183,6 +183,16 @@ export interface components {
              * Format: date-time
              */
             last_updated: string;
+            /**
+             * Review Comment Web Url
+             * @description Convert GitHub API comment URL to web URL.
+             *
+             *     Converts:
+             *     https://api.github.com/repos/cockroachdb/molt/pulls/comments/2528422125
+             *     to:
+             *     https://github.com/cockroachdb/molt/pull/596#discussion_r2528422125
+             */
+            readonly review_comment_web_url: string;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
